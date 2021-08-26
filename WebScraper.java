@@ -5,6 +5,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.Select;
 
 public class WebScraper {
@@ -13,14 +15,17 @@ public class WebScraper {
     public static void main(String args[]) {
 
         String playerName = String.join(" ", args);
+        System.out.println("name: " + playerName);
+
+        System.setProperty("webdriver.gecko.driver","./geckodriver");
+        System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
 
         FirefoxBinary firefoxBinary = new FirefoxBinary();
         //firefoxBinary.addCommandLineOptions("--headless");
-        System.setProperty("webdriver.gecko.driver","./geckodriver");
-        System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
         FirefoxOptions firefoxOptions = new FirefoxOptions();
         firefoxOptions.setBinary(firefoxBinary);
         FirefoxDriver driver = new FirefoxDriver(firefoxOptions);
+
 
         try {
             // fetch URL
@@ -28,20 +33,18 @@ public class WebScraper {
             System.out.println("fetched");
             Thread.sleep(5000);
 
-            try {
-                // accept cookies
-                WebElement acceptBtn = driver.findElement(By.id("onetrust-accept-btn-handler"));
-                acceptBtn.click();
-                System.out.println("accepted cookies");
-            } catch(Exception e) {
-                System.out.println("cookies already exists");
-            }
+            // allow cookies
+            WebElement acceptBtn = driver.findElement(By.id("onetrust-accept-btn-handler"));
+            acceptBtn.click();
+            System.out.println("cookies are allowed");
             Thread.sleep(3000);
 
+            // search player
             List<WebElement> inputTags = driver.findElements(By.tagName("input"));
             for(WebElement e : inputTags) {
                 if(e.getAttribute("placeholder").equals("Search Players")) {
                     e.sendKeys(playerName);
+                    System.out.println("player searched");
                     Thread.sleep(3000);
                     break;
                 }
@@ -53,6 +56,8 @@ public class WebScraper {
             WebElement tableRow = tableBody.findElement(By.tagName("tr"));
             WebElement aTag = tableRow.findElement(By.tagName("a"));
             String temp[] = aTag.getAttribute("href").split("/");
+            //System.out.println(String.join(" ", temp));
+            //System.out.println(temp[temp.length - 2]);
             driver.get("https://www.nba.com/stats/player/" + temp[temp.length - 2] + "/");
             System.out.println("fetched");
             Thread.sleep(3000);
@@ -93,6 +98,7 @@ public class WebScraper {
         } finally {
             driver.close();
         }
+
     }
 
 }
